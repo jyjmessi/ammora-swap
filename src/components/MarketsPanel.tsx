@@ -177,8 +177,8 @@ export function MarketsPanel(props: Props) {
             >
               <span className="pair-cell">
                 <span className="pair-avatars">
-                  <span className="token-avatar tiny">{base.slice(0, 2).toUpperCase()}</span>
-                  <span className="token-avatar tiny offset">{quote.slice(0, 2).toUpperCase()}</span>
+                  <span className="token-avatar tiny">{base.slice(0, 1).toUpperCase()}</span>
+                  <span className="token-avatar tiny offset">{quote.slice(0, 1).toUpperCase()}</span>
                 </span>
                 <span className="pair-name">
                   <strong>

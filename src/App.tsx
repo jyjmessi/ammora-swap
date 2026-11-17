@@ -498,6 +498,29 @@ export default function App() {
             onDismissTx={() => setTx({ phase: 'idle' })}
           />
 
+          <aside className="side-info">
+            <h2>Every swap is checked before it leaves your wallet</h2>
+            <ul>
+              <li>
+                <strong>Quoted from chain.</strong> Each pool that connects the pair is priced at the latest block and
+                the best output wins — no cached price, no mock data.
+              </li>
+              <li>
+                <strong>Exact approvals.</strong> Allowances are planned per swap and reset to the exact amount being
+                spent, never an unlimited approval.
+              </li>
+              <li>
+                <strong>Verified receipts.</strong> The SDK decodes the swap receipt at its own block and checks the
+                output balance before reporting success.
+              </li>
+            </ul>
+            <div className="side-info-foot">
+              <span className="tag">chain 91342</span>
+              <span className="tag">@ammora-protocol/sdk 0.3.9</span>
+              <span className="tag">exact input</span>
+            </div>
+          </aside>
+
           <MarketsPanel
             pools={pools}
             tokens={tokens}
