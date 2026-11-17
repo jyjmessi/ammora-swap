@@ -61,8 +61,8 @@ export async function quoteBestRoute(params: QuoteParams): Promise<QuoteResult> 
   const inputAsset = params.tokenIn.native ? 'native' : 'erc20'
   const outputAsset = params.tokenOut.native ? 'native' : 'erc20'
 
-  const settle = await Promise.all(
-    candidates.map(async (pool): Promise<RouteAttempt> => {
+  const quoteOne = async (pool: PoolDef): Promise<RouteAttempt> => {
+    {
       if (pool.model === 'almm' && (params.tokenIn.native || params.tokenOut.native)) {
         return { pool, error: 'ALMM bin pools settle WETH (ERC-20). Choose WETH instead of ETH for this route.' }
       }
@@ -94,8 +94,15 @@ export async function quoteBestRoute(params: QuoteParams): Promise<QuoteResult> 
           return { pool, error: message(strictError) }
         }
       }
-    }),
-  )
+    }
+  }
+
+  // Two quotes at a time: the public GIWA RPC rate-limits bursts of eth_call.
+  const settle: RouteAttempt[] = []
+  for (let index = 0; index < candidates.length; index += 2) {
+    const chunk = candidates.slice(index, index + 2)
+    settle.push(...(await Promise.all(chunk.map(quoteOne))))
+  }
 
   let best: RouteQuote | null = null
   for (const attempt of settle) {

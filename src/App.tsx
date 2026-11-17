@@ -22,7 +22,11 @@ import { MarketsPanel } from './components/MarketsPanel'
 import { TokenSelect } from './components/TokenSelect'
 import { AlertIcon, ChevronIcon, ExternalIcon, LogoMark, Spinner, WalletIcon } from './components/Icons'
 
-const ZERO: Address = '0x0000000000000000000000000000000000000000'
+/**
+ * The SDK refuses the zero address as a payer. Before a wallet is connected the
+ * app still shows a real quote, planned for this placeholder that never signs.
+ */
+const PREVIEW_PAYER: Address = '0x000000000000000000000000000000000000dEaD'
 const SLIPPAGE_KEY = 'ammora-swap.slippageBps'
 
 function initialTokens(): Token[] {
@@ -191,13 +195,14 @@ export default function App() {
           tokenIn: fromToken,
           tokenOut: toToken,
           amountIn,
-          payer: account ?? ZERO,
+          payer: account ?? PREVIEW_PAYER,
           slippageBps,
         })
         if (sequence !== quoteSeq.current) return
         setQuote(result)
         const failures = result.attempts.filter((attempt) => attempt.error)
-        setQuoteError(result.best ? null : failures[0]?.error ?? 'No Ammora pool can price this swap.')
+        const informative = failures.find((attempt) => !attempt.error?.includes('settle WETH')) ?? failures[0]
+        setQuoteError(result.best ? null : informative?.error ?? 'No Ammora pool can price this swap.')
       } catch (error) {
         if (sequence !== quoteSeq.current) return
         setQuote(null)
