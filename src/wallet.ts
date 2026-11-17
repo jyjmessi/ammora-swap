@@ -11,6 +11,31 @@ export type Eip1193Provider = {
   isCoinbaseWallet?: boolean
 }
 
+/**
+ * Set when the user pressed Disconnect. Wallets that do not implement
+ * `wallet_revokePermissions` keep exposing `eth_accounts` to this origin, so the
+ * flag is what stops the app from silently re-attaching on the next page load.
+ * `handleConnect` clears it once the user connects again.
+ */
+const DISCONNECT_KEY = 'ammora-swap.walletDisconnected'
+
+export function isWalletDisconnected(): boolean {
+  try {
+    return window.localStorage.getItem(DISCONNECT_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+export function setWalletDisconnected(disconnected: boolean): void {
+  try {
+    if (disconnected) window.localStorage.setItem(DISCONNECT_KEY, '1')
+    else window.localStorage.removeItem(DISCONNECT_KEY)
+  } catch {
+    /* private mode / storage disabled: the in-memory state still applies */
+  }
+}
+
 type WalletWindow = Window & {
   ethereum?: Eip1193Provider
   rabby?: unknown
@@ -50,6 +75,23 @@ export async function readAccounts(): Promise<Address[]> {
     return (accounts ?? []).map((a) => a as Address)
   } catch {
     return []
+  }
+}
+
+/**
+ * Ask the wallet to forget this origin (EIP-2255 `wallet_revokePermissions`).
+ * Wallets that do not implement the method reject it; that is expected and the
+ * caller keeps the local disconnect either way. Resolves true only when the
+ * wallet confirmed the revocation.
+ */
+export async function revokePermissions(): Promise<boolean> {
+  const provider = getProvider()
+  if (!provider) return false
+  try {
+    await provider.request({ method: 'wallet_revokePermissions', params: [{ eth_accounts: {} }] })
+    return true
+  } catch {
+    return false
   }
 }
 

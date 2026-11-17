@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Address } from 'viem'
 import { CHAIN_ID, DATA_API_URL, WETH, addressUrl } from './chain'
-import { getProvider, readAccounts, readChainId, requestAccounts, switchToGiwaSepolia, walletLabel } from './wallet'
+import {
+  getProvider,
+  isWalletDisconnected,
+  readAccounts,
+  readChainId,
+  requestAccounts,
+  revokePermissions,
+  setWalletDisconnected,
+  switchToGiwaSepolia,
+  walletLabel,
+} from './wallet'
 import { createWalletClientFor, shortAddress, subscribeWallet } from './wallet'
 import { nativeToken, readBalance, readBlockNumber, readTokenMeta } from './ammora'
 import {
@@ -20,7 +30,7 @@ import type { PoolLive, Token } from './types'
 import { SwapCard } from './components/SwapCard'
 import { MarketsPanel } from './components/MarketsPanel'
 import { TokenSelect } from './components/TokenSelect'
-import { AlertIcon, ChevronIcon, ExternalIcon, LogoMark, Spinner, WalletIcon } from './components/Icons'
+import { AlertIcon, ChevronIcon, ExternalIcon, LogoMark, PowerIcon, Spinner, WalletIcon } from './components/Icons'
 
 /**
  * The SDK refuses the zero address as a payer. Before a wallet is connected the
@@ -103,7 +113,8 @@ export default function App() {
         readBlockNumber().catch(() => null),
       ])
       if (cancelled) return
-      if (accounts[0]) setAccount(accounts[0])
+      // An explicit Disconnect wins over the wallet still exposing its accounts.
+      if (accounts[0] && !isWalletDisconnected()) setAccount(accounts[0])
       setChainId(currentChainId)
       setPools(list)
       setBlockNumber(head)
@@ -124,7 +135,13 @@ export default function App() {
 
   useEffect(() => {
     return subscribeWallet({
-      onAccounts: (accounts) => setAccount(accounts[0] ?? null),
+      onAccounts: (accounts) => {
+        if (isWalletDisconnected()) {
+          setAccount(null)
+          return
+        }
+        setAccount(accounts[0] ?? null)
+      },
       onChain: (nextChainId) => setChainId(nextChainId),
     })
   }, [])
@@ -221,6 +238,8 @@ export default function App() {
     setWalletBusy(true)
     try {
       const address = await requestAccounts()
+      // The user is connecting again, so the page-load guard can go.
+      setWalletDisconnected(false)
       setAccount(address)
       setChainId(await readChainId())
       if ((await readChainId()) !== CHAIN_ID) {
@@ -232,6 +251,26 @@ export default function App() {
     } finally {
       setWalletBusy(false)
     }
+  }, [])
+
+  /**
+   * Disconnect: ask the wallet to revoke this origin when it supports EIP-2255,
+   * then always clear the app-side session so the UI is signed out either way.
+   */
+  const handleDisconnect = useCallback(async () => {
+    setWalletBusy(true)
+    // Set first so the wallet's accountsChanged([]) lands on a disconnected app.
+    setWalletDisconnected(true)
+    try {
+      await revokePermissions()
+    } catch {
+      /* wallets without wallet_revokePermissions: the local reset below is enough */
+    }
+    setAccount(null)
+    setBalances({})
+    setTx({ phase: 'idle' })
+    setModal(null)
+    setWalletBusy(false)
   }, [])
 
   const handleSwitchNetwork = useCallback(async () => {
@@ -418,12 +457,29 @@ export default function App() {
             </a>
 
             {account ? (
-              <button type="button" className={`wallet-btn${wrongNetwork ? ' warn' : ''}`} onClick={handleSwitchNetwork} title="Wallet">
-                <WalletIcon />
-                <span>{shortAddress(account)}</span>
-                {wrongNetwork && <span className="wallet-warn">wrong network</span>}
-                <ChevronIcon />
-              </button>
+              <div className="wallet-cluster">
+                <button
+                  type="button"
+                  className={`wallet-btn${wrongNetwork ? ' warn' : ''}`}
+                  onClick={handleSwitchNetwork}
+                  title="Wallet — click to switch to GIWA Sepolia"
+                >
+                  <WalletIcon />
+                  <span>{shortAddress(account)}</span>
+                  {wrongNetwork && <span className="wallet-warn">wrong network</span>}
+                  <ChevronIcon />
+                </button>
+                <button
+                  type="button"
+                  className="disconnect-btn"
+                  onClick={handleDisconnect}
+                  disabled={walletBusy}
+                  title={`Disconnect ${walletLabel()} from Ammora Swap`}
+                >
+                  {walletBusy ? <Spinner size={13} /> : <PowerIcon size={14} />}
+                  <span>Disconnect</span>
+                </button>
+              </div>
             ) : (
               <button type="button" className="wallet-btn primary" onClick={handleConnect} disabled={walletBusy}>
                 {walletBusy ? <Spinner size={14} /> : <WalletIcon />}

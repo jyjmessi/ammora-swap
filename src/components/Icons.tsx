@@ -99,6 +99,15 @@ export function AlertIcon({ size = 16 }: IconProps) {
   )
 }
 
+export function PowerIcon({ size = 15 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 4.2v7.2" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+      <path d="M7.9 7.4a7 7 0 1 0 8.2 0" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 export function Spinner({ size = 16 }: IconProps) {
   return <span className="spinner" style={{ width: size, height: size }} aria-hidden="true" />
 }
