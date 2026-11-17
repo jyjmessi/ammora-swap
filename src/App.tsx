@@ -52,8 +52,13 @@ export default function App() {
 
   const [balances, setBalances] = useState<Record<string, bigint | null>>({})
 
-  const [fromToken, setFromToken] = useState<Token | null>(null)
-  const [toToken, setToToken] = useState<Token | null>(null)
+  const [fromToken, setFromToken] = useState<Token | null>(() => {
+    const list = knownTokens()
+    return list.find((token) => token.native) ?? list[0] ?? null
+  })
+  const [toToken, setToToken] = useState<Token | null>(() =>
+    pickToken(knownTokens(), '0x9976F3d67D3D73619EEd90E9e2eb2F6c765F47da', false),
+  )
   const [amount, setAmount] = useState('')
   const [slippageBps, setSlippageBps] = useState(() => {
     const stored = Number(window.localStorage.getItem(SLIPPAGE_KEY))
@@ -100,12 +105,13 @@ export default function App() {
       setBlockNumber(head)
       setPoolsBusy(false)
 
-      const eth = knownTokens().find((token) => token.native) ?? null
-      const tokenList = knownTokens()
-      const defaultOut = pickToken(tokenList, '0x9976F3d67D3D73619EEd90E9e2eb2F6c765F47da', false)
-      setFromToken(eth)
-      setToToken(defaultOut)
-    })()
+    })().catch((error: unknown) => {
+      if (cancelled) return
+      setPoolsBusy(false)
+      setSourceNote(
+        `Could not read pool state from GIWA Sepolia: ${error instanceof Error ? error.message : String(error)}`,
+      )
+    })
 
     return () => {
       cancelled = true

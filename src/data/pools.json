@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-17T23:27:37.486Z",
+  "generatedAt": "2026-11-17T23:30:45.916Z",
   "chainId": 91342,
   "tokens": [
     {
@@ -29,6 +29,13 @@
       "name": "Ammora GIWA compounding Canary",
       "decimals": 9,
       "totalSupply": "7500000000000"
+    },
+    {
+      "address": "0x4200000000000000000000000000000000000006",
+      "symbol": "ETH",
+      "name": "Ether (Wrapped)",
+      "decimals": 18,
+      "native": true
     },
     {
       "address": "0xcDD4be433A2eE9DB11edAD5750606A8dE806c03A",
