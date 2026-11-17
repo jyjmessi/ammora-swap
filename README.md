@@ -7,6 +7,8 @@ official [`@ammora-protocol/sdk`](https://www.npmjs.com/package/@ammora-protocol
 - Live app: https://jyjmessi.github.io/ammora-swap/
 - Network: GIWA Sepolia · RPC `https://sepolia-rpc.giwa.io` · Explorer `https://sepolia-explorer.giwa.io`
 
+![Ammora Swap on GIWA Sepolia](docs/screenshot.png)
+
 ## What it does
 
 | Area | Implementation |
