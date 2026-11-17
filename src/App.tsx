@@ -87,6 +87,7 @@ export default function App() {
   const [blockNumber, setBlockNumber] = useState<bigint | null>(null)
 
   const quoteSeq = useRef(0)
+  const walletSession = useRef(0)
   const busy = tx.phase === 'working' || walletBusy
 
   /** Live state for a set of pools, merged into the current list. */
@@ -154,6 +155,7 @@ export default function App() {
 
   const refreshBalances = useCallback(
     async (owner: Address, list: Token[]) => {
+      const session = walletSession.current
       // The public GIWA RPC rate-limits bursts, so balances are read in small batches.
       const entries: Array<readonly [string, bigint | null]> = []
       for (let index = 0; index < list.length; index += 4) {
@@ -170,6 +172,8 @@ export default function App() {
         )
         entries.push(...results)
       }
+      // The wallet was disconnected (or swapped) while these reads were in flight.
+      if (walletSession.current !== session) return
       setBalances((current) => ({ ...current, ...Object.fromEntries(entries) }))
     },
     [],
@@ -240,6 +244,8 @@ export default function App() {
       const address = await requestAccounts()
       // The user is connecting again, so the page-load guard can go.
       setWalletDisconnected(false)
+      walletSession.current += 1
+      setTx({ phase: 'idle' })
       setAccount(address)
       setChainId(await readChainId())
       if ((await readChainId()) !== CHAIN_ID) {
@@ -261,6 +267,8 @@ export default function App() {
     setWalletBusy(true)
     // Set first so the wallet's accountsChanged([]) lands on a disconnected app.
     setWalletDisconnected(true)
+    // Drop any balance reads that were started for the old session.
+    walletSession.current += 1
     try {
       await revokePermissions()
     } catch {
@@ -483,7 +491,7 @@ export default function App() {
             ) : (
               <button type="button" className="wallet-btn primary" onClick={handleConnect} disabled={walletBusy}>
                 {walletBusy ? <Spinner size={14} /> : <WalletIcon />}
-                <span>{walletBusy ? 'Connecting…' : `Connect ${walletLabel()}`}</span>
+                <span>{walletBusy ? 'Connecting…' : 'Connect Wallet'}</span>
               </button>
             )}
           </div>
