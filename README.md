@@ -69,8 +69,7 @@ historical index.
 The live site is published from the `gh-pages` branch:
 
 ```bash
-npm run build
-git subtree push --prefix dist origin gh-pages   # or push dist/ manually
+./scripts/deploy-gh-pages.sh    # builds and force-pushes dist/ to gh-pages
 ```
 
 GitHub Pages serves that branch at the repository path (`base: './'` keeps every asset relative). No server-side
