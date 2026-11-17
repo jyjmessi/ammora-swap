@@ -26,7 +26,12 @@ const FILTERS: Array<{ id: 'all' | Model; label: string }> = [
 ]
 
 function liquidityText(pool: PoolLive, tokens: Token[]): string {
-  if (!pool.live) return '—'
+  if (!pool.live && pool.reserveQuoteHint) {
+    const quoteToken = tokens.find((token) => token.address.toLowerCase() === pool.quote.toLowerCase() && !token.native)
+    const value = toNumber(pool.reserveQuoteHint, quoteToken?.decimals ?? 18)
+    return `~${formatCompact(value)} ${symbolForPoolToken(pool.quote, tokens)}`
+  }
+  if (!pool.live) return pool.activeIdHint !== null && pool.activeIdHint !== undefined ? `active bin ${pool.activeIdHint}` : '—'
   if (pool.live.reserveQuote !== null) {
     const quoteToken = tokens.find(
       (token) => token.address.toLowerCase() === pool.live?.quote.toLowerCase() && !token.native,
@@ -157,7 +162,7 @@ export function MarketsPanel(props: Props) {
           <span>Liquidity</span>
           <span />
         </div>
-        {busy && pools.length === 0 && <div className="market-skeleton">Reading pool state from GIWA Sepolia…</div>}
+        {pools.length === 0 && <div className="market-skeleton">Reading pool state from GIWA Sepolia…</div>}
         {visible.map((pool) => {
           const base = symbolForPoolToken(pool.base, tokens)
           const quote = symbolForPoolToken(pool.quote, tokens)

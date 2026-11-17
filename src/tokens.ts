@@ -52,6 +52,8 @@ export function bundledPools(): PoolDef[] {
     quote: string
     feeBps: number | null
     block: number | null
+    reserveQuote?: string | null
+    activeId?: number | null
   }>).map((pool) => ({
     id: `${pool.model}:${pool.pool.toLowerCase()}`,
     model: pool.model,
@@ -61,6 +63,8 @@ export function bundledPools(): PoolDef[] {
     feeBps: pool.feeBps,
     createdBlock: pool.block,
     source: 'index' as const,
+    reserveQuoteHint: pool.reserveQuote ? BigInt(pool.reserveQuote) : null,
+    activeIdHint: pool.activeId ?? null,
   }))
 }
 

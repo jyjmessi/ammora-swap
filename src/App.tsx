@@ -39,7 +39,7 @@ function pickToken(tokens: Token[], address: string, wantNative: boolean): Token
 
 export default function App() {
   const [tokens, setTokens] = useState<Token[]>(initialTokens)
-  const [pools, setPools] = useState<PoolLive[]>([])
+  const [pools, setPools] = useState<PoolLive[]>(() => initialPools().map((pool) => ({ ...pool, live: null })))
   const [poolsBusy, setPoolsBusy] = useState(true)
   const [scanning, setScanning] = useState(false)
   const [sourceLabel, setSourceLabel] = useState('on-chain index')

@@ -26,11 +26,27 @@ export function poolKey(pool: { model: Model; address: string }): string {
   return toPoolId(pool.model, pool.address)
 }
 
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error('The RPC did not answer in time')), ms)
+    promise.then(
+      (value) => {
+        window.clearTimeout(timer)
+        resolve(value)
+      },
+      (error: unknown) => {
+        window.clearTimeout(timer)
+        reject(error)
+      },
+    )
+  })
+}
+
 /** Reads live state for every pool, dropping nothing so failures stay visible in the UI. */
-export async function loadPoolStates(pools: PoolDef[]): Promise<PoolLive[]> {
-  return mapLimit(pools, 3, async (pool) => {
+export async function loadPoolStates(pools: PoolDef[], concurrency = 4): Promise<PoolLive[]> {
+  return mapLimit(pools, concurrency, async (pool) => {
     try {
-      const live = await readLiveState(pool.model, pool.address)
+      const live = await withTimeout(readLiveState(pool.model, pool.address), 15000)
       return { ...pool, live }
     } catch (error) {
       return { ...pool, live: null, error: error instanceof Error ? error.message : 'Pool state unavailable' }

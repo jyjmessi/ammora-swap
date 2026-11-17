@@ -33,6 +33,10 @@ export type PoolDef = {
   feeBps: number | null
   createdBlock: number | null
   source: 'index' | 'scan' | 'data-api' | 'manual'
+  /** Last known quote-token reserve from the bundled index, used until the live read lands. */
+  reserveQuoteHint?: bigint | null
+  /** Last known active bin for ALMM pools. */
+  activeIdHint?: number | null
 }
 
 export type LiveState = {
