@@ -107,7 +107,7 @@ export function SwapCard(props: Props) {
     actionLabel = 'Install a wallet'
     action = () => window.open('https://metamask.io/download/', '_blank', 'noopener')
   } else if (!account) {
-    actionLabel = 'Connect wallet'
+    actionLabel = 'Connect Wallet'
     action = props.onConnect
   } else if (chainId !== null && chainId !== 91342) {
     actionLabel = 'Switch to GIWA Sepolia'
