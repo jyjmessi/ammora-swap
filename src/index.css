@@ -36,7 +36,7 @@
 /* Light theme: same surfaces and hairlines, flipped to dark ink on light panels. */
 :root[data-theme='light'] {
   --ink: 17, 24, 39;
-  --on-accent: #07130f;
+  --on-accent: #ffffff;
   --bg: #f4f7fd;
   --bg-soft: #eef2fa;
   --panel: rgba(255, 255, 255, 0.88);

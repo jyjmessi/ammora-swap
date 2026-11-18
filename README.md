@@ -13,7 +13,8 @@ official [`@ammora-protocol/sdk`](https://www.npmjs.com/package/@ammora-protocol
 
 | Area | Implementation |
 | --- | --- |
-| Wallet | Any injected EIP-1193 wallet (MetaMask, Rabby, …). One-click `wallet_switchEthereumChain` for GIWA Sepolia with a `wallet_addEthereumChain` fallback (error `4902`). **Disconnect** clears the app session and asks the wallet to forget the origin via EIP-2255 `wallet_revokePermissions`; wallets without it keep the local disconnect (remembered so a reload does not auto-reattach) until the user connects again. |
+| Wallet | Any injected EIP-1193 wallet (MetaMask, Rabby, …). The header always reads **Connect Wallet** and the swap card offers **Install a wallet** when no provider is detected. One-click `wallet_switchEthereumChain` for GIWA Sepolia with a `wallet_addEthereumChain` fallback (error `4902`). **Disconnect** clears the app session and asks the wallet to forget the origin via EIP-2255 `wallet_revokePermissions`; wallets without it keep the local disconnect (remembered so a reload does not auto-reattach) until the user connects again. |
+| Theme | Light/dark toggle in the header. Surfaces, hairlines and accents come from CSS theme tokens (`:root[data-theme='light']`); the choice is stored as `ammora-swap-theme` and applied before first paint. |
 | Markets | Live pool state read through `ALMMClient` (bin step, active bin, fee) and `DammV2Client` (sqrt price, reserves, fee) for **concentrated**, **compounding** and **ALMM** pools. |
 | Pool discovery | Bundled on-chain index of the reviewed factory `PoolCreated` events, plus `discoverAmmoraPools()` factory-log scans for new pools and manual pool import. |
 | Protocol index | `AmmoraDataApiClient('https://ammora-giwa-sepolia-data.fly.dev')` seeds the market list when the API answers; the app falls back to on-chain reads when it does not. |
