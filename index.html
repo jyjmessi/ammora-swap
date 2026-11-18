@@ -1,10 +1,20 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#05060b" />
+    <script>
+      // Apply the saved theme before first paint so the page never flashes the wrong one.
+      try {
+        if (window.localStorage.getItem('ammora-swap-theme') === 'light') {
+          document.documentElement.dataset.theme = 'light'
+        }
+      } catch (error) {
+        /* storage disabled: the dark default already set on <html> applies */
+      }
+    </script>
     <title>Ammora Swap · GIWA Sepolia DEX</title>
     <meta
       name="description"

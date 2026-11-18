@@ -30,7 +30,7 @@ import type { PoolLive, Token } from './types'
 import { SwapCard } from './components/SwapCard'
 import { MarketsPanel } from './components/MarketsPanel'
 import { TokenSelect } from './components/TokenSelect'
-import { AlertIcon, ChevronIcon, ExternalIcon, LogoMark, PowerIcon, Spinner, WalletIcon } from './components/Icons'
+import { AlertIcon, ChevronIcon, ExternalIcon, LogoMark, MoonIcon, PowerIcon, Spinner, SunIcon, WalletIcon } from './components/Icons'
 
 /**
  * The SDK refuses the zero address as a payer. Before a wallet is connected the
@@ -38,6 +38,19 @@ import { AlertIcon, ChevronIcon, ExternalIcon, LogoMark, PowerIcon, Spinner, Wal
  */
 const PREVIEW_PAYER: Address = '0x000000000000000000000000000000000000dEaD'
 const SLIPPAGE_KEY = 'ammora-swap.slippageBps'
+const THEME_KEY = 'ammora-swap-theme'
+
+type Theme = 'light' | 'dark'
+
+function initialTheme(): Theme {
+  try {
+    const stored = window.localStorage.getItem(THEME_KEY)
+    if (stored === 'light' || stored === 'dark') return stored
+  } catch {
+    /* storage disabled: fall back to the dark default */
+  }
+  return 'dark'
+}
 
 function initialTokens(): Token[] {
   return knownTokens()
@@ -85,6 +98,7 @@ export default function App() {
   const [tx, setTx] = useState<TxState>({ phase: 'idle' })
   const [modal, setModal] = useState<'in' | 'out' | null>(null)
   const [blockNumber, setBlockNumber] = useState<bigint | null>(null)
+  const [theme, setTheme] = useState<Theme>(initialTheme)
 
   const quoteSeq = useRef(0)
   const walletSession = useRef(0)
@@ -187,6 +201,16 @@ export default function App() {
   useEffect(() => {
     window.localStorage.setItem(SLIPPAGE_KEY, String(slippageBps))
   }, [slippageBps])
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#f4f7fd' : '#05060b')
+    try {
+      window.localStorage.setItem(THEME_KEY, theme)
+    } catch {
+      /* storage disabled: the theme still applies for this session */
+    }
+  }, [theme])
 
   /* --------------------------------------------------------------------- quote */
 
@@ -452,6 +476,17 @@ export default function App() {
           </div>
 
           <div className="topbar-right">
+            <button
+              type="button"
+              className="theme-toggle"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+              aria-pressed={theme === 'light'}
+              title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            >
+              {theme === 'dark' ? <SunIcon size={16} /> : <MoonIcon size={16} />}
+            </button>
+
             <a
               className="network-chip"
               href="https://sepolia-explorer.giwa.io"
